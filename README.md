@@ -107,3 +107,39 @@ systemctl enable MTProxy.service
 ## Docker image
 Telegram is also providing [official Docker image](https://hub.docker.com/r/telegrammessenger/proxy/).
 Note: the image is outdated.
+
+---
+This repo now includes its own `Dockerfile`.
+
+### Build the image
+```bash
+docker build --platform linux/amd64 -t mtproxy .
+```
+
+### Run it
+```bash
+docker run -d \
+  --name mtproxy \
+  --restart unless-stopped \
+  -p 443:443 \
+  -p 8888:8888 \
+  -v "$PWD/data:/data" \
+  mtproxy
+```
+
+### Environment variables:
+- `SECRET`: one or more client secrets. Use 32 hex characters per secret. For multiple secrets, separate them with commas.
+- `TAG`: your proxy tag from `@MTProxybot`, also 32 hex characters.
+- `WORKERS`: number of MTProxy workers. Default is `1`.
+- `PORT`: public client port inside the container. Default is `443`.
+- `STATS_PORT`: local stats port inside the container. Default is `8888`.
+- `PUBLIC_HOST`: hostname or IP to use when printing Telegram links.
+- `EXTERNAL_IP` and `INTERNAL_IP`: used to build `--nat-info` automatically.
+- `NAT_INFO`: pass `<local-ip>:<public-ip>` directly if you want full control.
+- `TLS_DOMAIN`: enables TLS transport mode for the given domain.
+
+### Notes
+- If you do not pass `SECRET`, the container generates one and saves it in `/data/secrets`.
+- The AES secret from Telegram is stored in `/data/proxy-secret`.
+- The current Telegram backend config is stored in `/data/proxy-multi.conf`.
+- By default the image refreshes `proxy-multi.conf` on each start.
